@@ -1,11 +1,10 @@
-FROM postgres:13
+FROM python:3.12-slim
 
-# Install Python and psycopg2
-RUN apt-get update && apt-get install -y python3 python3-psycopg2
+WORKDIR /app
 
-COPY init.sql /docker-entrypoint-initdb.d/
-COPY populate_db.py /docker-entrypoint-initdb.d/
-COPY data /data
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Make the script executable
-RUN chmod +x /docker-entrypoint-initdb.d/populate_db.py
+COPY ./app /app/app
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
