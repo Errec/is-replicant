@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "is-replicant"
 version = "0.1.0"
-description = ""
-authors = ["Raniro Coelho <ranirocoelho@gmail.com>"]
+description = "AI-generated text detection API"
+authors  = ["Raniro Coelho <ranirocoelho@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -19,7 +19,6 @@ loguru = "^0.7.2"
 nltk = "^3.8.1"
 scikit-learn = "^1.5.1"
 pandas = "^2.2.2"
-
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.8.0"
