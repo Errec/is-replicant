@@ -33,4 +33,8 @@ TODO:
 
 [] Testing with Pytest
 
-[] Deploy
+[] Deploy API
+
+[] Set DB to cloud
+
+[] Propmpt before populate DB
