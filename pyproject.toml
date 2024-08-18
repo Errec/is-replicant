@@ -1,0 +1,5 @@
+[tool.poetry]
+name = "is-replicant"
+version = "0.1.0"
+description = "AI-generated text detection API"
+authors  = ["Raniro Coelho <ranirocoelho@gmail.com>"]
