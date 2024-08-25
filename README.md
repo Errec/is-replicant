@@ -18,6 +18,10 @@ docker-compose up -d
 - ReDoc (an alternative API documentation viewer) is available at http://localhost:8000/api/v1/redoc
 - The OpenAPI JSON schema is available at http://localhost:8000/api/v1/openapi.json- 
 
+## pgAdmin
+- localhost:5050
+- admin@admin.com
+- pass: admin
 
 ## TODO: 
 
