@@ -23,9 +23,13 @@ docker-compose up -d
 - admin@admin.com
 - pass: admin
 
+- POSTGRES_DB=is_replicant
+- POSTGRES_USER=user
+- POSTGRES_PASSWORD=password
+
 ## TODO: 
 
-[] CI/CD
+[x] CI/CD
 
 [x] Docker Setup
 
@@ -35,7 +39,7 @@ docker-compose up -d
 
 [x] Database Migrations
 
-[] Swagger
+[x] Swagger
 
 [] Text Analysis Service
 
@@ -55,4 +59,4 @@ docker-compose up -d
 
 [] Set DB to cloud
 
-[] Propmpt before populate DB
+[] Prompt before populate DB

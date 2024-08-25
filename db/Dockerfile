@@ -1,16 +1,24 @@
 FROM postgres:13
 
-# Install Python and psycopg2
-RUN apt-get update && apt-get install -y python3 python3-psycopg2
+# Install Python and venv
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a virtual environment
+RUN python3 -m venv /opt/venv
+
+# Activate virtual environment and install psycopg2-binary
+RUN . /opt/venv/bin/activate && \
+    pip install psycopg2-binary
 
 COPY init.sql /docker-entrypoint-initdb.d/
-COPY populate_db.sh /docker-entrypoint-initdb.d/
-RUN chmod +x /docker-entrypoint-initdb.d/populate_db.sh
+COPY populate_db.py /docker-entrypoint-initdb.d/
 COPY data /data
 
 # Copy and set permissions for the new entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY docker-entrypoint.sh /usr/local/bin/custom-entrypoint.sh
+RUN chmod +x /usr/local/bin/custom-entrypoint.sh
 
-# Use the new entrypoint script
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/custom-entrypoint.sh"]
