@@ -1,6 +1,8 @@
 services:
   api:
-    build: ./api
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
     ports:
       - "8000:8000"
     depends_on:
@@ -8,8 +10,9 @@ services:
         condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/is_replicant
+      - SECRET_KEY=your_secret_key_here
     volumes:
-      - ./api:/app
+      - ./api/app:/app/app
     networks:
       - app-network
 

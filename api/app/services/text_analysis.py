@@ -1,79 +1,65 @@
-"""This module contains the text analysis service functions."""
-import os
-from collections import Counter
-
-import nltk
-from nltk.tokenize import word_tokenize
 from sqlalchemy.orm import Session
-
+from collections import Counter
+import spacy
 from app.db import models
-from app.schemas.text import TextAnalysisResponse, WordAnalysis, PhraseAnalysis
+from app.schemas.text import WordAnalysis, PhraseAnalysis
 
-# Set NLTK data path
-nltk.data.path.append(os.environ.get('NLTK_DATA', '/app/nltk_data'))
-
-
-def analyze_text(text: str, db: Session) -> TextAnalysisResponse:
-    """Analyze the given text for AI-generated content."""
-    words = word_tokenize(text.lower())
-    word_freq = Counter(words)
-
-    db_words = db.query(models.Word).all()
-    db_phrases = db.query(models.Phrase).all()
-
-    word_analysis = WordAnalysis(
-        total_word_count=len(words),
-        unique_word_count=len(set(words)),
-        word_frequencies=[
-            {"word": word, "frequency": freq / len(words)}
-            for word, freq in word_freq.most_common(10)
-        ],
-        top_n_words=[word for word, _ in word_freq.most_common(5)],
-        ai_likelihood=calculate_word_ai_likelihood(words, db_words),
-    )
-
-    phrase_analysis = PhraseAnalysis(
-        total_phrase_count=len(text.split(".")),
-        matched_ai_phrases=find_matched_phrases(text, db_phrases),
-        ai_likelihood=calculate_phrase_ai_likelihood(text, db_phrases),
-    )
-
-    overall_ai_likelihood = (
-        word_analysis.ai_likelihood + phrase_analysis.ai_likelihood
-    ) / 2
-
-    return TextAnalysisResponse(
-        word_analysis=word_analysis,
-        phrase_analysis=phrase_analysis,
-        overall_ai_likelihood=overall_ai_likelihood,
-    )
-
+# Initialize the spaCy model
+nlp = spacy.load("en_core_web_sm")
 
 def calculate_word_ai_likelihood(words, db_words):
-    """Calculate the AI likelihood of the given words."""
-    ai_words = [db_word for db_word in db_words if db_word.word in words]
-    return (
-        sum(word.ai_likelihood for word in ai_words) / len(ai_words)
-        if ai_words
-        else 0
-    )
-
-
-def find_matched_phrases(text, db_phrases):
-    """Find and return matched AI-generated phrases in the text."""
-    return [
-        {"phrase": phrase.phrase, "ai_likelihood": phrase.ai_likelihood}
-        for phrase in db_phrases
-        if phrase.phrase.lower() in text.lower()
-    ]
-
+    """Calculate the likelihood that the text is AI-generated based on word analysis."""
+    matched_words = [word for word in words if word in {w.word for w in db_words}]
+    ai_likelihood = len(matched_words) / len(words) if words else 0
+    return ai_likelihood
 
 def calculate_phrase_ai_likelihood(text, db_phrases):
-    """Calculate the AI likelihood of the given phrases."""
-    matched_phrases = find_matched_phrases(text, db_phrases)
-    return (
-        sum(phrase["ai_likelihood"] for phrase in matched_phrases)
-        / len(matched_phrases)
-        if matched_phrases
-        else 0
-    )
+    """Calculate the likelihood that the text is AI-generated based on phrase analysis."""
+    matched_phrases = [
+        phrase.phrase for phrase in db_phrases if phrase.phrase in text
+    ]
+    ai_likelihood = len(matched_phrases) / len(db_phrases) if db_phrases else 0
+    return ai_likelihood
+
+def find_matched_phrases(text, db_phrases):
+    """Find phrases in the text that match those in the database."""
+    matched_phrases = [
+        {"phrase": phrase.phrase, "frequency": text.count(phrase.phrase)}
+        for phrase in db_phrases if phrase.phrase in text
+    ]
+    return matched_phrases
+
+def analyze_text(text: str, db: Session):
+    try:
+        # Process the text using spaCy
+        doc = nlp(text.lower())
+        words = [token.text for token in doc]
+
+        db_words = db.query(models.Word).all()
+        db_phrases = db.query(models.Phrase).all()
+
+        # Updated to ensure the dictionary format matches the Pydantic schema
+        word_frequencies = [{"word": word, "frequency": freq} for word, freq in Counter(words).most_common()]
+
+        word_analysis = WordAnalysis(
+            total_word_count=len(words),
+            unique_word_count=len(set(words)),
+            word_frequencies=word_frequencies,
+            top_n_words=[word for word, _ in Counter(words).most_common(10)],
+            ai_likelihood=calculate_word_ai_likelihood(words, db_words),
+        )
+
+        phrase_analysis = PhraseAnalysis(
+            total_phrase_count=len(db_phrases),
+            matched_ai_phrases=find_matched_phrases(text, db_phrases),
+            ai_likelihood=calculate_phrase_ai_likelihood(text, db_phrases),
+        )
+
+        overall_ai_likelihood = (
+            word_analysis.ai_likelihood + phrase_analysis.ai_likelihood
+        ) / 2
+
+        return word_analysis, phrase_analysis, overall_ai_likelihood
+
+    except Exception as e:
+        raise Exception(f"An error occurred during analysis: {str(e)}") from e

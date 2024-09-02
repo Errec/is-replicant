@@ -1,38 +1,28 @@
-# Use a slim variant of Python for smaller image size
 FROM python:3.12-slim
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the requirements file first to leverage Docker cache
-COPY requirements.txt .
+RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir poetry
 
-# Create a non-root user and group
+# Copy pyproject.toml from the root directory
+COPY ../../pyproject.toml ./
+
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi
+
 RUN addgroup --system appgroup && adduser --system appuser --ingroup appgroup
 
-# Create the NLTK data directory
-RUN mkdir -p /app/nltk_data
+# Install spaCy model
+RUN pip install spacy && python -m spacy download en_core_web_sm
 
-# Download NLTK data
-RUN python -m nltk.downloader -d /app/nltk_data punkt
+COPY . /app
 
-# Set proper permissions
 RUN chown -R appuser:appgroup /app
 
-# Copy the application code
-COPY ./app /app/app
-
-# Set the non-root user to run the application
 USER appuser
 
-# Set environment variable for NLTK data directory
-ENV NLTK_DATA=/app/nltk_data
-
-# Expose the port FastAPI will run on
 EXPOSE 8000
 
-# Default command to run the application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

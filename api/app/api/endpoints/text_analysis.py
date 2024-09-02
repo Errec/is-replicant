@@ -1,5 +1,4 @@
-"""API endpoint for text analysis."""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.api.dependencies import get_db
 from app.schemas.text import TextAnalysisRequest, TextAnalysisResponse
@@ -17,4 +16,15 @@ async def analyze(request: TextAnalysisRequest, db: Session = Depends(get_db)):
     Returns a detailed analysis of the text, including word analysis, phrase analysis,
     and overall AI likelihood.
     """
-    return analyze_text(request.text, db)
+    try:
+        word_analysis, phrase_analysis, overall_ai_likelihood = analyze_text(request.text, db)
+        return TextAnalysisResponse(
+            word_analysis=word_analysis,
+            phrase_analysis=phrase_analysis,
+            overall_ai_likelihood=overall_ai_likelihood,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"An error occurred during analysis: {str(e)}"
+        ) from e
