@@ -1,7 +1,9 @@
 """Module to populate the database with the words and phrases data from the JSON files."""
 from contextlib import contextmanager
+import argparse
 import json
 import os
+import sys
 import time
 import logging
 import psycopg2
@@ -63,8 +65,8 @@ def insert_data(conn, table, data):
     finally:
         cur.close()
 
-def main():
-    """Main function to populate the database."""
+def populate_database():
+    """Populate the database with data from JSON files."""
     retry_count = 0
     max_retries = 5
     while retry_count < max_retries:
@@ -86,6 +88,30 @@ def main():
             break
     else:
         logging.error("Max retries reached. Could not connect to the database.")
+
+
+def main():
+    """Entry point for the populate_db script."""
+    parser = argparse.ArgumentParser(description="Populate the database with initial data")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Bypass confirmation prompt and run without asking",
+    )
+    args = parser.parse_args()
+
+    env_force = os.getenv("POPULATE_DB_FORCE", "").lower() in {"1", "true", "yes"}
+    force = args.force or env_force
+
+    if not force:
+        response = input(
+            "This will insert sample data into the database. Continue? [y/N]: "
+        ).strip().lower()
+        if response not in {"y", "yes"}:
+            print("Aborted.")
+            sys.exit(0)
+
+    populate_database()
 
 if __name__ == "__main__":
     main()
