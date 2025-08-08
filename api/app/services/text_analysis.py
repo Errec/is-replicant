@@ -1,13 +1,19 @@
 """This module contains the text analysis service functions."""
 import os
 from collections import Counter
+from typing import List
 
 import nltk
 from nltk.tokenize import word_tokenize
 from sqlalchemy.orm import Session
 
 from app.db import models
-from app.schemas.text import TextAnalysisResponse, WordAnalysis, PhraseAnalysis
+from app.schemas.text import (
+    TextAnalysisResponse,
+    WordAnalysis,
+    PhraseAnalysis,
+    MatchedPhrase,
+)
 
 # Set NLTK data path
 nltk.data.path.append(os.environ.get('NLTK_DATA', '/app/nltk_data'))
@@ -59,10 +65,10 @@ def calculate_word_ai_likelihood(words, db_words):
     )
 
 
-def find_matched_phrases(text, db_phrases):
+def find_matched_phrases(text, db_phrases) -> List[MatchedPhrase]:
     """Find and return matched AI-generated phrases in the text."""
     return [
-        {"phrase": phrase.phrase, "ai_likelihood": phrase.ai_likelihood}
+        MatchedPhrase(phrase=phrase.phrase, ai_likelihood=phrase.ai_likelihood)
         for phrase in db_phrases
         if phrase.phrase.lower() in text.lower()
     ]
@@ -72,8 +78,7 @@ def calculate_phrase_ai_likelihood(text, db_phrases):
     """Calculate the AI likelihood of the given phrases."""
     matched_phrases = find_matched_phrases(text, db_phrases)
     return (
-        sum(phrase["ai_likelihood"] for phrase in matched_phrases)
-        / len(matched_phrases)
+        sum(phrase.ai_likelihood for phrase in matched_phrases) / len(matched_phrases)
         if matched_phrases
         else 0
     )
