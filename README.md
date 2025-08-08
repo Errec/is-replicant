@@ -28,6 +28,22 @@ pip install -r api/requirements.txt
 pytest
 ```
 
+## Database Population
+
+Populate the database with the initial word and phrase data:
+
+```bash
+python db/populate_db.py
+```
+
+The script will prompt for confirmation before inserting records. Use the `--force` flag or the `POPULATE_DB_FORCE=1` environment variable to bypass the prompt in automated environments:
+
+```bash
+python db/populate_db.py --force
+# or
+POPULATE_DB_FORCE=1 python db/populate_db.py
+```
+
 ## pgAdmin
 
 - URL: <http://localhost:5050>
@@ -54,5 +70,5 @@ pytest
 - [x] Testing with Pytest
 - [ ] Deploy API
 - [ ] Set DB to cloud
-- [ ] Prompt before populate DB
+- [x] Prompt before populate DB
 

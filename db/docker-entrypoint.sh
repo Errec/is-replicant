@@ -21,7 +21,7 @@ log "PostgreSQL is ready. Running populate_db.py..."
 
 # Activate the virtual environment and run the populate script
 . /opt/venv/bin/activate && \
-python3 /docker-entrypoint-initdb.d/populate_db.py
+python3 /docker-entrypoint-initdb.d/populate_db.py --force
 
 log "populate_db.py has completed. PostgreSQL setup is complete."
 
