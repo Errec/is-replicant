@@ -19,6 +19,20 @@ Swagger documentation:
 - ReDoc: <http://localhost:8000/api/v1/redoc>
 - OpenAPI JSON: <http://localhost:8000/api/v1/openapi.json>
 
+## Production Deployment
+
+Build a standalone API image and run it with an environment file:
+
+```bash
+cp api/.env.example api/.env  # update values for your environment
+docker build -t is-replicant-api -f api/Dockerfile api
+docker run --env-file api/.env -p 8000:8000 is-replicant-api
+```
+
+The repository includes a sample GitHub Actions workflow in
+`.github/workflows/docker.yml` that builds the container and starts it with
+temporary environment variables.
+
 ## Testing
 
 Install dependencies and run the test suite:

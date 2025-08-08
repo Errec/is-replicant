@@ -1,0 +1,25 @@
+name: Build and Run API Docker image
+
+on:
+  push:
+    paths:
+      - 'api/**'
+      - '.github/workflows/docker.yml'
+  pull_request:
+    paths:
+      - 'api/**'
+      - '.github/workflows/docker.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API image
+        run: docker build -t is-replicant-api -f api/Dockerfile api
+      - name: Run container
+        run: |
+          docker run -d --rm --name api -e DATABASE_URL=sqlite:///./test.db -e SECRET_KEY=test -p 8000:8000 is-replicant-api
+          sleep 10
+          curl --fail http://localhost:8000/ || (docker logs api && exit 1)
+          docker stop api
