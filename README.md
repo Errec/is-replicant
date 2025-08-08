@@ -48,8 +48,7 @@ docker-compose up -d
 [x] Database Connection and ORM Setup
 
 [x] Running with Uvicorn
-
-[] Text Analysis Endpoints
+[x] Text Analysis Endpoints
 
 [] Testing the API
 
