@@ -41,7 +41,7 @@ docker-compose up -d
 
 [x] Swagger
 
-[] Text Analysis Service
+[x] Text Analysis Service
 
 [x] Database Models
 
