@@ -3,3 +3,8 @@ name = "is-replicant"
 version = "0.1.0"
 description = "AI-generated text detection API"
 authors  = ["Raniro Coelho <ranirocoelho@gmail.com>"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --cov=api --cov-report=term-missing"
+testpaths = ["api/tests"]
+pythonpath = ["api"]
